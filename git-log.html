@@ -16,6 +16,7 @@
   --orange-text:#b34a00;
   --cyan:#3de6d0;
   --cyan-text:#0b6f64;
+  --red:#ff5a67;
   --red-text:#c21f2f;
   --text:#1c1c1c;
   --dim:#4f6663;
@@ -33,30 +34,11 @@ body{
   background-size:48px 48px;
 }
 .wrap{max-width:760px;margin:0 auto;padding:28px 20px 56px}
-.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
-header{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 20px;
-  border-bottom:2px solid var(--orange);padding-bottom:12px;margin-bottom:22px}
-h1{font-family:var(--display);font-weight:700;font-size:26px;letter-spacing:.1em;margin:0;color:var(--text)}
-.count{font-family:var(--data);font-size:14px;color:var(--dim);margin-left:auto}
+h1{font-family:var(--display);font-weight:700;font-size:26px;letter-spacing:.1em;margin:0 0 24px;
+  padding-bottom:12px;border-bottom:2px solid var(--orange)}
 
-form{background:var(--panel);border:2px solid var(--orange);padding:16px;
-  display:grid;grid-template-columns:150px 1fr auto;gap:12px;align-items:end}
-label{display:block;font-family:var(--data);font-size:14px;color:var(--dim);margin-bottom:4px}
-select,input[type="text"]{
-  width:100%;font:500 18px var(--body);color:var(--text);background:var(--void);
-  border:1px solid var(--orange);padding:8px 10px;border-radius:0;
-}
-button{font:600 18px var(--body);cursor:pointer;border-radius:0}
-.add{background:var(--orange);color:var(--text);border:2px solid var(--orange);padding:8px 22px}
-.add:hover{background:var(--void)}
-.error{grid-column:1/-1;margin:0;min-height:1.4em;color:var(--red-text);font-size:16px}
-
-.tools{display:flex;justify-content:flex-end;margin-top:10px}
-.ghost{background:transparent;color:var(--dim);border:1px solid var(--orange);padding:3px 14px;font-size:16px;font-weight:500}
-.ghost:hover{color:var(--text);background:var(--panel)}
-
-.timeline{position:relative;margin:26px 0 0;padding-left:34px;list-style:none}
+.timeline{position:relative;margin:0;padding:0 0 0 34px;list-style:none}
 .timeline::before{content:"";position:absolute;left:11px;top:6px;bottom:6px;width:2px;background:var(--orange)}
 .entry{position:relative;margin:0 0 20px}
 .entry::before{
@@ -65,8 +47,9 @@ button{font:600 18px var(--body);cursor:pointer;border-radius:0}
 }
 .k-commit{--node:var(--cyan)}
 .k-action{--node:var(--orange)}
-.k-fix{--node:#ff5a67}
+.k-fix{--node:var(--red)}
 .k-note{--node:var(--void)}
+
 .card{background:var(--panel);border:1px solid var(--orange);padding:12px 16px}
 .row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;font-family:var(--data);font-size:14px;color:var(--dim)}
 .tag{padding:0 8px;border:1px solid currentColor}
@@ -74,201 +57,42 @@ button{font:600 18px var(--body);cursor:pointer;border-radius:0}
 .k-action .tag{color:var(--orange-text)}
 .k-fix .tag{color:var(--red-text)}
 .k-note .tag{color:var(--dim)}
-.del{margin-left:auto;background:transparent;border:0;color:var(--dim);font:500 15px var(--body);padding:2px 6px}
-.del:hover{color:var(--red-text);text-decoration:underline}
-.msg{font-family:var(--display);font-weight:500;font-size:19px;line-height:1.4;margin:8px 0 4px;overflow-wrap:anywhere}
-.quip{margin:0;color:var(--orange-text);font-size:17px}
-.empty{color:var(--dim);margin:28px 0 0;padding:20px;border:1px dashed var(--orange);background:var(--panel)}
-:focus-visible{outline:3px solid var(--orange-text);outline-offset:2px}
+h2{font-family:var(--display);font-weight:500;font-size:19px;line-height:1.4;margin:8px 0 4px;overflow-wrap:anywhere}
+.card p{margin:0;color:var(--orange-text);font-size:17px}
 
-@media (max-width:600px){
-  form{grid-template-columns:1fr}
-  .add{width:100%}
-  .count{margin-left:0}
-  .msg{font-size:17px}
-}
+@media (max-width:600px){h2{font-size:17px}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <h1>Git learning log</h1>
-    <div class="count"><span id="count">0</span> entries &middot; saved in this browser</div>
-  </header>
+  <h1>Git learning log</h1>
 
-  <form id="form" novalidate>
-    <div>
-      <label for="type">Type</label>
-      <select id="type">
-        <option value="commit">Commit</option>
-        <option value="action">Action</option>
-        <option value="fix">Fix</option>
-        <option value="note">Note</option>
-      </select>
-    </div>
-    <div>
-      <label for="msg">What did you do or learn?</label>
-      <input id="msg" type="text" maxlength="140" autocomplete="off" placeholder="Added my first GitHub Actions workflow">
-    </div>
-    <button type="submit" class="add">Add entry</button>
-    <p class="error" id="error" role="alert"></p>
-  </form>
+  <ol class="timeline">
 
-  <div class="tools">
-    <button type="button" class="ghost" id="export">Export JSON</button>
-  </div>
+    <!--
+      TO ADD AN ENTRY: copy one <li> block below, paste it at the TOP of this list
+      (newest first), then change three things: the class (k-commit, k-action, k-fix or k-note),
+      the tag text and date, and the h2 text. The <p> line is optional.
 
-  <ol class="timeline" id="timeline" aria-label="Log timeline"></ol>
-  <p class="empty" id="empty">No entries yet. Add your first one above and it appears on the timeline.</p>
+    <li class="entry k-commit">
+      <div class="card">
+        <div class="row"><span class="tag">commit</span><time datetime="2026-10-12">12 Oct 2026</time></div>
+        <h2>What I did</h2>
+        <p>Optional extra line</p>
+      </div>
+    </li>
+    -->
+
+    <li class="entry k-commit">
+      <div class="card">
+        <div class="row"><span class="tag">content changed - commit - 2</span>
+        <time datetime="2026-10-10">10 Oct 2026</time></div>
+        <h2>What I did - Added second Commit</h2>
+        <p>Optional extra line</p>
+      </div>
+    </li>
+
+  </ol>
 </div>
-
-<script>
-const KEY = "git-learning-log.v1";
-const QUIPS = {
-  commit: ["Committed. There is no undo, only revert.", "Another save point in the timeline.", "The diff has been filed. Nobody read it."],
-  action: ["The pipeline ran. The robots are pleased.", "A runner was born, worked, and was deleted.", "Green tick acquired."],
-  fix:    ["It was the indentation. It is always the indentation.", "Fixed. Do not ask how.", "Bug contained. Probably."],
-  note:   ["Knowledge logged. Future you says thanks.", "Written down so it stays learned.", "Filed under: things I will forget by Friday."]
-};
-const KINDS = ["commit","action","fix","note"];
-const $ = id => document.getElementById(id);
-const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-let entries = load();
-let raf = 0;
-
-function load(){
-  try{
-    const r = JSON.parse(localStorage.getItem(KEY));
-    return Array.isArray(r) ? r : [];
-  }catch(e){ return []; }
-}
-
-function save(){
-  try{ localStorage.setItem(KEY, JSON.stringify(entries)); return true; }
-  catch(e){
-    $("error").textContent = "Could not save in this browser. Use Export JSON to keep your log.";
-    return false;
-  }
-}
-
-function render(newId){
-  const list = $("timeline");
-  list.textContent = "";
-  $("count").textContent = entries.length;
-  $("empty").hidden = entries.length > 0;
-
-  entries.forEach(e => {
-    const kind = KINDS.includes(e.type) ? e.type : "note";
-
-    const li = document.createElement("li");
-    li.className = "entry k-" + kind;
-
-    const card = document.createElement("div");
-    card.className = "card";
-
-    const row = document.createElement("div");
-    row.className = "row";
-    const tag = document.createElement("span");
-    tag.className = "tag";
-    tag.textContent = kind;
-    const time = document.createElement("time");
-    time.dateTime = e.time || "";
-    time.textContent = e.time ? new Date(e.time).toLocaleString([], {dateStyle:"medium", timeStyle:"short"}) : "";
-    const del = document.createElement("button");
-    del.type = "button";
-    del.className = "del";
-    del.textContent = "Delete";
-    del.setAttribute("aria-label", "Delete entry: " + (e.message || ""));
-    del.addEventListener("click", () => {
-      if(!confirm("Delete this entry?")) return;
-      entries = entries.filter(x => x.id !== e.id);
-      save();
-      render();
-    });
-    row.append(tag, time, del);
-
-    const msg = document.createElement("p");
-    msg.className = "msg";
-    msg.textContent = e.message || "";
-
-    const quip = document.createElement("p");
-    quip.className = "quip";
-    quip.textContent = e.quip || "";
-
-    card.append(row, msg, quip);
-    li.appendChild(card);
-    list.appendChild(li);
-
-    if(e.id === newId) decrypt(msg, e.message || "");
-  });
-}
-
-function decrypt(el, text){
-  cancelAnimationFrame(raf);
-  if(reduceMotion || !text) return;
-  const sr = document.createElement("span");
-  sr.className = "sr-only";
-  sr.textContent = text;
-  el.after(sr);
-  el.setAttribute("aria-hidden", "true");
-
-  const glyphs = "#%&01<>/|+=";
-  const start = performance.now();
-  const dur = Math.min(800, 250 + text.length * 10);
-  const tick = now => {
-    const p = Math.min(1, (now - start) / dur);
-    const n = Math.floor(p * text.length);
-    let out = text.slice(0, n);
-    for(let i = n; i < text.length; i++){
-      out += text[i] === " " ? " " : glyphs[Math.floor(Math.random() * glyphs.length)];
-    }
-    el.textContent = out;
-    if(p < 1){ raf = requestAnimationFrame(tick); }
-    else{ el.removeAttribute("aria-hidden"); sr.remove(); }
-  };
-  raf = requestAnimationFrame(tick);
-}
-
-$("form").addEventListener("submit", ev => {
-  ev.preventDefault();
-  const message = $("msg").value.trim();
-  const type = $("type").value;
-  if(!message){
-    $("error").textContent = "Write what you did or learned first.";
-    $("msg").focus();
-    return;
-  }
-  $("error").textContent = "";
-  const list = QUIPS[type];
-  const entry = {
-    id: Date.now(),
-    time: new Date().toISOString(),
-    type,
-    message,
-    quip: list[Math.floor(Math.random() * list.length)]
-  };
-  entries.unshift(entry);
-  save();
-  $("msg").value = "";
-  render(entry.id);
-  $("msg").focus();
-});
-
-$("msg").addEventListener("input", () => { $("error").textContent = ""; });
-
-$("export").addEventListener("click", () => {
-  const blob = new Blob([JSON.stringify(entries, null, 2)], {type:"application/json"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "git-learning-log.json";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-});
-
-render();
-</script>
 </body>
 </html>
