@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Daily Tasks</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 40px 16px;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        main {
+            max-width: 620px;
+            margin: auto;
+        }
+
+        h1 {
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #64748b;
+            margin-bottom: 28px;
+        }
+
+        form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            min-width: 0;
+            padding: 13px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 11px 14px;
+            border: 0;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .add-button {
+            background: #2563eb;
+            color: white;
+        }
+
+        .filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .filter-button {
+            background: white;
+            border: 1px solid #cbd5e1;
+        }
+
+        .filter-button.active {
+            background: #dbeafe;
+            border-color: #2563eb;
+        }
+
+        #task-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .task {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+        }
+
+        .task-title {
+            flex: 1;
+            overflow-wrap: anywhere;
+        }
+
+        .task.completed .task-title {
+            color: #94a3b8;
+            text-decoration: line-through;
+        }
+
+        .delete-button {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .empty-state {
+            padding: 24px;
+            text-align: center;
+            color: #64748b;
+            background: white;
+            border-radius: 10px;
+        }
+
+        #summary {
+            margin-top: 18px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        @media (max-width: 420px) {
+            form {
+                flex-wrap: wrap;
+            }
+
+            input[type="text"] {
+                flex-basis: 100%;
+            }
+
+            .add-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <h1>Daily Tasks</h1>
+        <p class="subtitle">A simple place to organize your day.</p>
+
+        <form id="task-form">
+            <input
+                id="task-input"
+                type="text"
+                placeholder="What needs to get done?"
+                maxlength="200"
+                aria-label="New task"
+                required
+            >
+            <button class="add-button" type="submit">Add task</button>
+        </form>
+
+        <nav class="filters" aria-label="Filter tasks">
+            <button class="filter-button active" data-filter="all" type="button">All</button>
+            <button class="filter-button" data-filter="pending" type="button">Pending</button>
+            <button class="filter-button" data-filter="completed" type="button">Completed</button>
+        </nav>
+
+        <section id="task-list" aria-live="polite"></section>
+        <p id="summary">0 tasks</p>
+    </main>
+
+    <script>
+        const STORAGE_KEY = "daily-tasks-v1";
+
+        const form = document.querySelector("#task-form");
+        const input = document.querySelector("#task-input");
+        const list = document.querySelector("#task-list");
+        const summary = document.querySelector("#summary");
+        const filterButtons = document.querySelectorAll("[data-filter]");
+
+        let tasks = loadTasks();
+        let currentFilter = "all";
+
+        function loadTasks() {
+            try {
+                const saved = JSON.parse(
+                    localStorage.getItem(STORAGE_KEY) || "[]"
+                );
+
+                return Array.isArray(saved) ? saved : [];
+            } catch {
+                return [];
+            }
+        }
+
+        function saveTasks() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+            } catch {
+                alert("Your browser could not save the tasks.");
+            }
+        }
+
+        function renderTasks() {
+            list.replaceChildren();
+
+            const visibleTasks = tasks.filter(task => {
+                if (currentFilter === "pending") return !task.completed;
+                if (currentFilter === "completed") return task.completed;
+                return true;
+            });
+
+            if (visibleTasks.length === 0) {
+                const empty = document.createElement("p");
+                empty.className = "empty-state";
+                empty.textContent = tasks.length === 0
+                    ? "No tasks yet. Add your first task above."
+                    : "No tasks match this filter.";
+
+                list.append(empty);
+            }
+
+            visibleTasks.forEach(task => {
+                const item = document.createElement("article");
+                item.className = task.completed ? "task completed" : "task";
+
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.checked = task.completed;
+                checkbox.setAttribute("aria-label", "Mark task complete");
+
+                checkbox.addEventListener("change", () => {
+                    task.completed = checkbox.checked;
+                    saveTasks();
+                    renderTasks();
+                });
+
+                const title = document.createElement("span");
+                title.className = "task-title";
+                title.textContent = task.title;
+
+                const deleteButton = document.createElement("button");
+                deleteButton.className = "delete-button";
+                deleteButton.type = "button";
+                deleteButton.textContent = "Delete";
+
+                deleteButton.addEventListener("click", () => {
+                    tasks = tasks.filter(entry => entry.id !== task.id);
+                    saveTasks();
+                    renderTasks();
+                });
+
+                item.append(checkbox, title, deleteButton);
+                list.append(item);
+            });
+
+            const pending = tasks.filter(task => !task.completed).length;
+            const completed = tasks.length - pending;
+
+            summary.textContent =
+                `${tasks.length} total · ${pending} pending · ${completed} completed`;
+        }
+
+        form.addEventListener("submit", event => {
+            event.preventDefault();
+
+            const title = input.value.trim();
+            if (!title) return;
+
+            tasks.unshift({
+                id: crypto.randomUUID(),
+                title,
+                completed: false
+            });
+
+            saveTasks();
+            currentFilter = "all";
+            updateFilters();
+            renderTasks();
+
+            form.reset();
+            input.focus();
+        });
+
+        function updateFilters() {
+            filterButtons.forEach(button => {
+                const active = button.dataset.filter === currentFilter;
+
+                button.classList.toggle("active", active);
+                button.setAttribute("aria-pressed", String(active));
+            });
+        }
+
+        filterButtons.forEach(button => {
+            button.addEventListener("click", () => {
+                currentFilter = button.dataset.filter;
+                updateFilters();
+                renderTasks();
+            });
+        });
+
+        renderTasks();
+    </script>
+</body>
+</html>
