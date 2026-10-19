@@ -1,0 +1,32 @@
+
+name: HTML Validation
+
+on:
+  push:
+    paths:
+      - "todo-plain/**"
+      - ".github/workflows/html-check.yml"
+  pull_request:
+    paths:
+      - "todo-plain/**"
+      - ".github/workflows/html-check.yml"
+
+jobs:
+  validate-html:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check HTML file exists
+        run: test -f todo-plain/index.html
+
+      - name: Check basic HTML structure
+        run: |
+          grep -qi '<!doctype html>' todo-plain/index.html
+          grep -qi '<html' todo-plain/index.html
+          grep -qi '</html>' todo-plain/index.html
+
+      - name: Validation successful
+        run: echo "HTML validation passed!"
